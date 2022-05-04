@@ -263,14 +263,14 @@ resource "azurerm_virtual_machine" "fgtavm" {
   }
 
   storage_os_disk {
-    name              = "${var.PREFIX}-${upper(var.PREFIX)}FWP001-OSDISK"
+    name              = "${upper(var.PREFIX)}FWP001-OSDISK"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   storage_data_disk {
-    name              = "${var.PREFIX}-${upper(var.PREFIX)}FWP001-DATADISK"
+    name              = "${upper(var.PREFIX)}FWP001-DATADISK"
     managed_disk_type = "Premium_LRS"
     create_option     = "Empty"
     lun               = 0
