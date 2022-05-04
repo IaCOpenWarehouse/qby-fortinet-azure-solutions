@@ -194,8 +194,13 @@ variable "fortinet_tags" {
 # Resource Group
 ##############################################################################################################
 
+variable "resource_group_name" {
+  type = string
+  default = ""
+}
+
 resource "azurerm_resource_group" "resourcegroup" {
-  name     = "${var.PREFIX}-RG"
+  name     = coalesce(var.resource_group_name, "${var.PREFIX}-RG")
   location = var.LOCATION
 }
 
