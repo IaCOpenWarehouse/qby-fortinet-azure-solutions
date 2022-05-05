@@ -35,7 +35,7 @@ output "deployment_summary" {
 
 output "network" {
   value = {
-    vnet = azurerm_virtual_network.vnet
+    vnet    = azurerm_virtual_network.vnet
     subnet1 = azurerm_subnet.subnet1
     subnet2 = azurerm_subnet.subnet2
     subnet3 = azurerm_subnet.subnet3
