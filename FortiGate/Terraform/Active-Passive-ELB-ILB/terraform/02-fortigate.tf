@@ -13,7 +13,7 @@ resource "azurerm_availability_set" "fgtavset" {
 }
 
 resource "azurerm_network_security_group" "fgtnsg" {
-  name                = coalesce(var.avset_name, "${var.PREFIX}-FGT-NSG")
+  name                = coalesce(var.nsg_name, "${var.PREFIX}-FGT-NSG")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
 }
