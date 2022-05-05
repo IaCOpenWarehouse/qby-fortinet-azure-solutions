@@ -21,7 +21,7 @@ variable "PASSWORD" {
 }
 
 variable "STATE" {
-  type = string
+  type    = string
   default = "prd"
 }
 ##############################################################################################################
@@ -200,19 +200,19 @@ variable "fortinet_tags" {
 ##############################################################################################################
 
 variable "vnet_name" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "subnet_names" {
   type = map(string)
   default = {
-    "1" = ""   # External
-    "2" = ""  # Internal
+    "1" = "" # External
+    "2" = "" # Internal
     "3" = "" # HASYNC
     "4" = "" # MGMT
-    "5" = ""   # Protected a
-    "6" = ""   # Protected b
+    "5" = "" # Protected a
+    "6" = "" # Protected b
   }
 }
 
@@ -224,13 +224,89 @@ variable "route_table_names" {
   }
 }
 
+##############################################################################################################
+# FortiGate Names
+##############################################################################################################
+
+variable "avset_name" {
+  type    = string
+  default = ""
+}
+
+variable "nsg_name" {
+  type    = string
+  default = ""
+}
+
+variable "elb_config_names" {
+  type = map(string)
+  default = {
+    "name"                 = ""
+    "pip_name"             = ""
+    "frontend_ip_name"     = ""
+    "backend_address_pool" = ""
+    "lb_probe_name"        = ""
+  }
+}
+
+variable "ilb_config_names" {
+  type = map(string)
+  default = {
+    "name"                 = ""
+    "frontend_ip_name"     = ""
+    "backend_address_pool" = ""
+    "lb_probe_name"        = ""
+  }
+}
+
+variable "nic_names" {
+  type = map(string)
+  default = {
+    "fgtaifcext"    = ""
+    "fgtaifcint"    = ""
+    "fgtaifchasync" = ""
+    "fgtaifcmgmt"   = ""
+
+    "fgtbifcext"    = ""
+    "fgtbifcint"    = ""
+    "fgtbifchasync" = ""
+    "fgtbifcmgmt"   = ""
+  }
+}
+
+variable "vm_names" {
+  type = map(string)
+  default = {
+    "fgtavm" = ""
+    "fgtbvm" = ""
+  }
+}
+
+variable "disk_names" {
+  type = map(string)
+  default = {
+    "fgtaosdisk"   = ""
+    "fgtadatadisk" = ""
+
+    "fgtbosdisk"   = ""
+    "fgtbdatadisk" = ""
+  }
+}
+
+variable "mgmt_pip_names" {
+  type = map(string)
+  default = {
+    "fgta" = ""
+    "fgtb" = ""
+  }
+}
 
 ##############################################################################################################
 # Resource Group
 ##############################################################################################################
 
 variable "resource_group_name" {
-  type = string
+  type    = string
   default = ""
 }
 
