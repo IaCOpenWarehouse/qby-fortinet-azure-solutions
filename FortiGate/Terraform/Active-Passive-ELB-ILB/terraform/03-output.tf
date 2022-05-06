@@ -32,3 +32,15 @@ data "template_file" "summary" {
 output "deployment_summary" {
   value = data.template_file.summary.rendered
 }
+
+output "network" {
+  value = {
+    vnet    = azurerm_virtual_network.vnet
+    subnet1 = azurerm_subnet.subnet1
+    subnet2 = azurerm_subnet.subnet2
+    subnet3 = azurerm_subnet.subnet3
+    subnet4 = azurerm_subnet.subnet4
+    subnet5 = azurerm_subnet.subnet5
+    subnet6 = azurerm_subnet.subnet6
+  }
+}

@@ -6,14 +6,14 @@
 ##############################################################################################################
 
 resource "azurerm_availability_set" "fgtavset" {
-  name                = "${var.PREFIX}-FGT-AVSET"
+  name                = coalesce(var.avset_name, "${var.PREFIX}-FGT-AVSET")
   location            = var.LOCATION
   managed             = true
   resource_group_name = azurerm_resource_group.resourcegroup.name
 }
 
 resource "azurerm_network_security_group" "fgtnsg" {
-  name                = "${var.PREFIX}-FGT-NSG"
+  name                = coalesce(var.nsg_name, "${var.PREFIX}-FGT-NSG")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
 }
@@ -47,7 +47,7 @@ resource "azurerm_network_security_rule" "fgtnsgallowallin" {
 }
 
 resource "azurerm_public_ip" "elbpip" {
-  name                = "${var.PREFIX}-ELB-PIP"
+  name                = coalesce(var.elb_config_names["pip_name"], "${var.PREFIX}-ELB-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
   allocation_method   = "Static"
@@ -56,61 +56,58 @@ resource "azurerm_public_ip" "elbpip" {
 }
 
 resource "azurerm_lb" "elb" {
-  name                = "${var.PREFIX}-ExternalLoadBalancer"
+  name                = coalesce(var.elb_config_names["name"], "${var.PREFIX}-ExternalLoadBalancer")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
   sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                 = "${var.PREFIX}-ELB-PIP"
+    name                 = coalesce(var.elb_config_names["frontend_ip_name"], "${var.PREFIX}-ELB-PIP")
     public_ip_address_id = azurerm_public_ip.elbpip.id
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "elbbackend" {
   loadbalancer_id = azurerm_lb.elb.id
-  name            = "BackEndPool"
+  name            = coalesce(var.elb_config_names["backend_address_pool"], "BackEndPool")
 }
 
 resource "azurerm_lb_probe" "elbprobe" {
-  resource_group_name = azurerm_resource_group.resourcegroup.name
-  loadbalancer_id     = azurerm_lb.elb.id
-  name                = "lbprobe"
-  port                = 8008
+  loadbalancer_id = azurerm_lb.elb.id
+  name            = coalesce(var.elb_config_names["lb_probe_name"], "lbprobe")
+  port            = 8008
 }
 
 resource "azurerm_lb_rule" "lbruletcp" {
-  resource_group_name            = azurerm_resource_group.resourcegroup.name
   loadbalancer_id                = azurerm_lb.elb.id
   name                           = "PublicLBRule-FE1-http"
   protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
-  frontend_ip_configuration_name = "${var.PREFIX}-ELB-PIP"
+  frontend_ip_configuration_name = coalesce(var.elb_config_names["frontend_ip_name"], "${var.PREFIX}-ELB-PIP")
   probe_id                       = azurerm_lb_probe.elbprobe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.elbbackend.id]
 }
 
 resource "azurerm_lb_rule" "lbruleudp" {
-  resource_group_name            = azurerm_resource_group.resourcegroup.name
   loadbalancer_id                = azurerm_lb.elb.id
   name                           = "PublicLBRule-FE1-udp10551"
   protocol                       = "Udp"
   frontend_port                  = 10551
   backend_port                   = 10551
-  frontend_ip_configuration_name = "${var.PREFIX}-ELB-PIP"
+  frontend_ip_configuration_name = coalesce(var.elb_config_names["frontend_ip_name"], "${var.PREFIX}-ELB-PIP")
   probe_id                       = azurerm_lb_probe.elbprobe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.elbbackend.id]
 }
 
 resource "azurerm_lb" "ilb" {
-  name                = "${var.PREFIX}-InternalLoadBalancer"
+  name                = coalesce(var.ilb_config_names["name"], "${var.PREFIX}-InternalLoadBalancer")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
   sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                          = "${var.PREFIX}-ILB-PIP"
+    name                          = coalesce(var.ilb_config_names["frontend_ip_name"], "${var.PREFIX}-ILB-PIP")
     subnet_id                     = azurerm_subnet.subnet2.id
     private_ip_address            = var.lb_internal_ipaddress
     private_ip_address_allocation = "Static"
@@ -119,30 +116,28 @@ resource "azurerm_lb" "ilb" {
 
 resource "azurerm_lb_backend_address_pool" "ilbbackend" {
   loadbalancer_id = azurerm_lb.ilb.id
-  name            = "BackEndPool"
+  name            = coalesce(var.ilb_config_names["backend_address_pool"], "BackEndPool")
 }
 
 resource "azurerm_lb_probe" "ilbprobe" {
-  resource_group_name = azurerm_resource_group.resourcegroup.name
-  loadbalancer_id     = azurerm_lb.ilb.id
-  name                = "lbprobe"
-  port                = 8008
+  loadbalancer_id = azurerm_lb.ilb.id
+  name            = coalesce(var.ilb_config_names["lb_probe_name"], "lbprobe")
+  port            = 8008
 }
 
 resource "azurerm_lb_rule" "lb_haports_rule" {
-  resource_group_name            = azurerm_resource_group.resourcegroup.name
   loadbalancer_id                = azurerm_lb.ilb.id
   name                           = "lb_haports_rule"
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
-  frontend_ip_configuration_name = "${var.PREFIX}-ILB-PIP"
+  frontend_ip_configuration_name = coalesce(var.ilb_config_names["frontend_ip_name"], "${var.PREFIX}-ILB-PIP")
   probe_id                       = azurerm_lb_probe.ilbprobe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.ilbbackend.id]
 }
 
 resource "azurerm_network_interface" "fgtaifcext" {
-  name                          = "${var.PREFIX}-A-VM-FGT-IFC-EXT"
+  name                          = coalesce(var.nic_names["fgtaifcext"], "${var.PREFIX}-A-VM-FGT-IFC-EXT")
   location                      = azurerm_resource_group.resourcegroup.location
   resource_group_name           = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding          = true
@@ -151,7 +146,7 @@ resource "azurerm_network_interface" "fgtaifcext" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet1.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_a["1"]
   }
 }
@@ -168,7 +163,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "fgtaifcex
 }
 
 resource "azurerm_network_interface" "fgtaifcint" {
-  name                 = "${var.PREFIX}-A-VM-FGT-IFC-INT"
+  name                 = coalesce(var.nic_names["fgtaifcint"], "${var.PREFIX}-A-VM-FGT-IFC-INT")
   location             = azurerm_resource_group.resourcegroup.location
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding = true
@@ -176,7 +171,7 @@ resource "azurerm_network_interface" "fgtaifcint" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet2.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_a["2"]
   }
 }
@@ -193,7 +188,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "fgtaifcin
 }
 
 resource "azurerm_network_interface" "fgtaifchasync" {
-  name                 = "${var.PREFIX}-A-VM-FGT-IFC-HASYNC"
+  name                 = coalesce(var.nic_names["fgtaifchasync"], "${var.PREFIX}-A-VM-FGT-IFC-HASYNC")
   location             = azurerm_resource_group.resourcegroup.location
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding = true
@@ -201,7 +196,7 @@ resource "azurerm_network_interface" "fgtaifchasync" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet3.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_a["3"]
   }
 }
@@ -212,7 +207,7 @@ resource "azurerm_network_interface_security_group_association" "fgtaifchasyncns
 }
 
 resource "azurerm_public_ip" "fgtamgmtpip" {
-  name                = "${var.PREFIX}-A-FGT-MGMT-PIP"
+  name                = coalesce(var.mgmt_pip_names["fgta"], "${var.PREFIX}-A-FGT-MGMT-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
   allocation_method   = "Static"
@@ -221,7 +216,7 @@ resource "azurerm_public_ip" "fgtamgmtpip" {
 }
 
 resource "azurerm_network_interface" "fgtaifcmgmt" {
-  name                          = "${var.PREFIX}-A-VM-FGT-IFC-MGMT"
+  name                          = coalesce(var.nic_names["fgtaifcmgmt"], "${var.PREFIX}-A-VM-FGT-IFC-MGMT")
   location                      = azurerm_resource_group.resourcegroup.location
   resource_group_name           = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding          = true
@@ -230,7 +225,7 @@ resource "azurerm_network_interface" "fgtaifcmgmt" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet4.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_a["4"]
     public_ip_address_id          = azurerm_public_ip.fgtamgmtpip.id
   }
@@ -242,7 +237,7 @@ resource "azurerm_network_interface_security_group_association" "fgtaifcmgmtnsg"
 }
 
 resource "azurerm_virtual_machine" "fgtavm" {
-  name                         = "${var.PREFIX}-A-VM-FGT"
+  name                         = coalesce(var.vm_names["fgtavm"], "${var.PREFIX}-A-VM-FGT")
   location                     = azurerm_resource_group.resourcegroup.location
   resource_group_name          = azurerm_resource_group.resourcegroup.name
   network_interface_ids        = [azurerm_network_interface.fgtaifcext.id, azurerm_network_interface.fgtaifcint.id, azurerm_network_interface.fgtaifchasync.id, azurerm_network_interface.fgtaifcmgmt.id]
@@ -268,14 +263,14 @@ resource "azurerm_virtual_machine" "fgtavm" {
   }
 
   storage_os_disk {
-    name              = "${var.PREFIX}-A-VM-FGT-OSDISK"
+    name              = coalesce(var.disk_names["fgtaosdisk"], "${var.PREFIX}-A-VM-FGT-OSDISK")
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   storage_data_disk {
-    name              = "${var.PREFIX}-A-FGT-VM-DATADISK"
+    name              = coalesce(var.disk_names["fgtadatadisk"], "${var.PREFIX}-A-VM-FGT-DATADISK")
     managed_disk_type = "Premium_LRS"
     create_option     = "Empty"
     lun               = 0
@@ -284,7 +279,7 @@ resource "azurerm_virtual_machine" "fgtavm" {
 
 
   os_profile {
-    computer_name  = "${var.PREFIX}-A-VM-FGT"
+    computer_name  = coalesce(var.vm_names["fgtavm"], "${var.PREFIX}-A-VM-FGT")
     admin_username = var.USERNAME
     admin_password = var.PASSWORD
     custom_data    = data.template_file.fgt_a_custom_data.rendered
@@ -301,7 +296,7 @@ data "template_file" "fgt_a_custom_data" {
   template = file("${path.module}/customdata.tpl")
 
   vars = {
-    fgt_vm_name         = "${var.PREFIX}-A-VM-FGT"
+    fgt_vm_name         = coalesce(var.vm_names["fgtavm"], "${var.PREFIX}-A-VM-FGT")
     fgt_license_file    = var.FGT_BYOL_LICENSE_FILE_A
     fgt_license_flexvm  = var.FGT_BYOL_FLEXVM_LICENSE_FILE_A
     fgt_username        = var.USERNAME
@@ -327,7 +322,7 @@ data "template_file" "fgt_a_custom_data" {
 }
 
 resource "azurerm_network_interface" "fgtbifcext" {
-  name                          = "${var.PREFIX}-B-VM-FGT-IFC-EXT"
+  name                          = coalesce(var.nic_names["fgtbifcext"], "${var.PREFIX}-B-VM-FGT-IFC-EXT")
   location                      = azurerm_resource_group.resourcegroup.location
   resource_group_name           = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding          = true
@@ -336,7 +331,7 @@ resource "azurerm_network_interface" "fgtbifcext" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet1.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_b["1"]
   }
 }
@@ -353,7 +348,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "fgtbifcex
 }
 
 resource "azurerm_network_interface" "fgtbifcint" {
-  name                          = "${var.PREFIX}-B-VM-FGT-IFC-INT"
+  name                          = coalesce(var.nic_names["fgtbifcint"], "${var.PREFIX}-B-VM-FGT-IFC-INT")
   location                      = azurerm_resource_group.resourcegroup.location
   resource_group_name           = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding          = true
@@ -362,7 +357,7 @@ resource "azurerm_network_interface" "fgtbifcint" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet2.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_b["2"]
   }
 }
@@ -379,7 +374,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "fgtbifcin
 }
 
 resource "azurerm_network_interface" "fgtbifchasync" {
-  name                          = "${var.PREFIX}-B-VM-FGT-IFC-HASYNC"
+  name                          = coalesce(var.nic_names["fgtbifchasync"], "${var.PREFIX}-B-VM-FGT-IFC-HASYNC")
   location                      = azurerm_resource_group.resourcegroup.location
   resource_group_name           = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding          = true
@@ -388,7 +383,7 @@ resource "azurerm_network_interface" "fgtbifchasync" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet3.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_b["3"]
   }
 }
@@ -399,7 +394,7 @@ resource "azurerm_network_interface_security_group_association" "fgtbifchasyncns
 }
 
 resource "azurerm_public_ip" "fgtbmgmtpip" {
-  name                = "${var.PREFIX}-B-FGT-MGMT-PIP"
+  name                = coalesce(var.mgmt_pip_names["fgtb"], "${var.PREFIX}-B-FGT-MGMT-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
   allocation_method   = "Static"
@@ -408,7 +403,7 @@ resource "azurerm_public_ip" "fgtbmgmtpip" {
 }
 
 resource "azurerm_network_interface" "fgtbifcmgmt" {
-  name                          = "${var.PREFIX}-B-VM-FGT-IFC-MGMT"
+  name                          = coalesce(var.nic_names["fgtbifcmgmt"], "${var.PREFIX}-B-VM-FGT-IFC-MGMT")
   location                      = azurerm_resource_group.resourcegroup.location
   resource_group_name           = azurerm_resource_group.resourcegroup.name
   enable_ip_forwarding          = true
@@ -417,7 +412,7 @@ resource "azurerm_network_interface" "fgtbifcmgmt" {
   ip_configuration {
     name                          = "interface1"
     subnet_id                     = azurerm_subnet.subnet4.id
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_b["4"]
     public_ip_address_id          = azurerm_public_ip.fgtbmgmtpip.id
   }
@@ -429,7 +424,7 @@ resource "azurerm_network_interface_security_group_association" "fgtbifcmgmtnsg"
 }
 
 resource "azurerm_virtual_machine" "fgtbvm" {
-  name                         = "${var.PREFIX}-B-VM-FGT"
+  name                         = coalesce(var.vm_names["fgtbvm"], "${var.PREFIX}-B-VM-FGT")
   location                     = azurerm_resource_group.resourcegroup.location
   resource_group_name          = azurerm_resource_group.resourcegroup.name
   network_interface_ids        = [azurerm_network_interface.fgtbifcext.id, azurerm_network_interface.fgtbifcint.id, azurerm_network_interface.fgtbifchasync.id, azurerm_network_interface.fgtbifcmgmt.id]
@@ -455,14 +450,14 @@ resource "azurerm_virtual_machine" "fgtbvm" {
   }
 
   storage_os_disk {
-    name              = "${var.PREFIX}-B-VM-FGT-OSDISK"
+    name              = coalesce(var.disk_names["fgtbosdisk"], "${var.PREFIX}-B-VM-FGT-OSDISK")
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   storage_data_disk {
-    name              = "${var.PREFIX}-B-FGT-VM-DATADISK"
+    name              = coalesce(var.disk_names["fgtbdatadisk"], "${var.PREFIX}-B-VM-FGT-DATADISK")
     managed_disk_type = "Premium_LRS"
     create_option     = "Empty"
     lun               = 0
@@ -470,7 +465,7 @@ resource "azurerm_virtual_machine" "fgtbvm" {
   }
 
   os_profile {
-    computer_name  = "${var.PREFIX}-B-VM-FGT"
+    computer_name  = coalesce(var.vm_names["fgtbvm"], "${var.PREFIX}-B-VM-FGT")
     admin_username = var.USERNAME
     admin_password = var.PASSWORD
     custom_data    = data.template_file.fgt_b_custom_data.rendered
@@ -490,7 +485,7 @@ data "template_file" "fgt_b_custom_data" {
   template = file("${path.module}/customdata.tpl")
 
   vars = {
-    fgt_vm_name         = "${var.PREFIX}-B-VM-FGT"
+    fgt_vm_name         = coalesce(var.vm_names["fgtbvm"], "${var.PREFIX}-B-VM-FGT")
     fgt_license_file    = var.FGT_BYOL_LICENSE_FILE_B
     fgt_license_flexvm  = var.FGT_BYOL_FLEXVM_LICENSE_FILE_B
     fgt_username        = var.USERNAME

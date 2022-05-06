@@ -10,49 +10,49 @@
 ##############################################################################################################
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.PREFIX}-VNET"
+  name                = coalesce(var.vnet_name, "${var.PREFIX}-VNET")
   address_space       = [var.vnet]
   location            = azurerm_resource_group.resourcegroup.location
   resource_group_name = azurerm_resource_group.resourcegroup.name
 }
 
 resource "azurerm_subnet" "subnet1" {
-  name                 = "${var.PREFIX}-SUBNET-FGT-EXTERNAL"
+  name                 = coalesce(var.subnet_names["1"], "${var.PREFIX}-SUBNET-FGT-EXTERNAL")
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet["1"]]
 }
 
 resource "azurerm_subnet" "subnet2" {
-  name                 = "${var.PREFIX}-SUBNET-FGT-INTERNAL"
+  name                 = coalesce(var.subnet_names["2"], "${var.PREFIX}-SUBNET-FGT-INTERNAL")
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet["2"]]
 }
 
 resource "azurerm_subnet" "subnet3" {
-  name                 = "${var.PREFIX}-SUBNET-FGT-HASYNC"
+  name                 = coalesce(var.subnet_names["3"], "${var.PREFIX}-SUBNET-FGT-HASYNC")
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet["3"]]
 }
 
 resource "azurerm_subnet" "subnet4" {
-  name                 = "${var.PREFIX}-SUBNET-FGT-MGMT"
+  name                 = coalesce(var.subnet_names["4"], "${var.PREFIX}-SUBNET-FGT-MGMT")
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet["4"]]
 }
 
 resource "azurerm_subnet" "subnet5" {
-  name                 = "${var.PREFIX}-SUBNET-PROTECTED-A"
+  name                 = coalesce(var.subnet_names["5"], "${var.PREFIX}-SUBNET-PROTECTED-A")
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet["5"]]
 }
 
 resource "azurerm_subnet" "subnet6" {
-  name                 = "${var.PREFIX}-SUBNET-PROTECTED-B"
+  name                 = coalesce(var.subnet_names["6"], "${var.PREFIX}-SUBNET-PROTECTED-B")
   resource_group_name  = azurerm_resource_group.resourcegroup.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet["6"]]
@@ -64,7 +64,7 @@ resource "azurerm_subnet_route_table_association" "subnet5rt" {
 }
 
 resource "azurerm_route_table" "protectedaroute" {
-  name                = "${var.PREFIX}-RT-PROTECTED-A"
+  name                 = coalesce(var.route_table_names["protecteda"], "${var.PREFIX}-RT-PROTECTED-A")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
 
@@ -93,7 +93,7 @@ resource "azurerm_subnet_route_table_association" "subnet6rt" {
 }
 
 resource "azurerm_route_table" "protectedbroute" {
-  name                = "${var.PREFIX}-RT-PROTECTED-B"
+  name                 = coalesce(var.route_table_names["protectedb"], "${var.PREFIX}-RT-PROTECTED-B")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
 
