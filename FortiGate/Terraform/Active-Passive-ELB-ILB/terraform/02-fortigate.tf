@@ -10,6 +10,7 @@ resource "azurerm_availability_set" "fgtavset" {
   location            = var.LOCATION
   managed             = true
   resource_group_name = azurerm_resource_group.resourcegroup.name
+  platform_fault_domain_count = 2
 }
 
 resource "azurerm_network_security_group" "fgtnsg" {
@@ -22,6 +23,7 @@ resource "azurerm_network_security_rule" "fgtnsgallowallout" {
   name                        = "AllowAllOutbound"
   resource_group_name         = azurerm_resource_group.resourcegroup.name
   network_security_group_name = azurerm_network_security_group.fgtnsg.name
+
   priority                    = 100
   direction                   = "Outbound"
   access                      = "Allow"
