@@ -194,6 +194,10 @@ variable "fortinet_tags" {
   }
 }
 
+variable "use_management_pips" {
+  type = bool
+  default = true 
+}
 
 ##############################################################################################################
 # Network Names
