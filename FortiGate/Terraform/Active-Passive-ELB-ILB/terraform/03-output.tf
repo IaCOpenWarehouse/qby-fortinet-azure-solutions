@@ -33,6 +33,13 @@ output "deployment_summary" {
   value = data.template_file.summary.rendered
 }
 
+output "fortivm" {
+  value = {
+    fgtavm = azurerm_virtual_machine.fgtavm
+    fgtbvm = azurerm_virtual_machine.fgtbvm
+  }
+}
+
 output "network" {
   value = {
     vnet    = azurerm_virtual_network.vnet
