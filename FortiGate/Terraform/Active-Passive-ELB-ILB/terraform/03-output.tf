@@ -40,6 +40,10 @@ output "fortivm" {
   }
 }
 
+output "external_load_balancer" {
+  value = azurerm_lb.elb
+}
+
 output "network" {
   value = {
     vnet    = azurerm_virtual_network.vnet
