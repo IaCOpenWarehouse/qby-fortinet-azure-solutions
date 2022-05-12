@@ -296,7 +296,7 @@ resource "azurerm_virtual_machine" "fgtavm" {
 }
 
 data "template_file" "fgt_a_custom_data" {
-  template = file("${path.module}/customdata.tpl")
+  template = file(coalesce(var.custom_template_file, "${path.module}/customdata.tpl"))
 
   vars = {
     fgt_vm_name         = coalesce(var.vm_names["fgtavm"], "${var.PREFIX}-A-VM-FGT")
@@ -486,7 +486,7 @@ resource "azurerm_virtual_machine" "fgtbvm" {
 }
 
 data "template_file" "fgt_b_custom_data" {
-  template = file("${path.module}/customdata.tpl")
+  template = file(coalesce(var.custom_template_file, "${path.module}/customdata.tpl"))
 
   vars = {
     fgt_vm_name         = coalesce(var.vm_names["fgtbvm"], "${var.PREFIX}-B-VM-FGT")
