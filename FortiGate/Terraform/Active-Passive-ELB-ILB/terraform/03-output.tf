@@ -40,8 +40,12 @@ output "fortivm" {
   }
 }
 
-output "external_load_balancer" {
-  value = azurerm_lb.elb
+output "load_balancer" {
+  value = {
+    elb = azurerm_lb.elb
+    elb_probe = azurerm_lb_probe.elbprobe
+    elb_backend_address_pool = azurerm_lb_backend_address_pool.elbbackend
+  }
 }
 
 output "network" {
