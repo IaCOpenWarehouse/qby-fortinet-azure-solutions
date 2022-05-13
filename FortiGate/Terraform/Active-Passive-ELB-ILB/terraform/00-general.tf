@@ -34,6 +34,24 @@ variable "custom_template_file" {
   description = "Path to a custom tpl file to replace the customdata.tpl"
 }
 
+variable "fgt_ipsec_psk" {
+  type        = string
+  description = "Password of ipsec vpn"
+  sensitive   = true
+}
+
+variable "fgt_radius_psk" {
+  type        = string
+  description = "Password of radius"
+  sensitive   = true
+}
+
+variable "fgt_analyzer_psk" {
+  type        = string
+  description = "Password of analyzer"
+  sensitive   = true
+}
+
 ##############################################################################################################
 # FortiGate license type
 ##############################################################################################################
