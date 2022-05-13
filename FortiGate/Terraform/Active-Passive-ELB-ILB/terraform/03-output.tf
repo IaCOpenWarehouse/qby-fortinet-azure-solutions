@@ -20,17 +20,32 @@ data "template_file" "summary" {
     fgt_a_private_ip_address_int    = azurerm_network_interface.fgtaifcint.private_ip_address
     fgt_a_private_ip_address_hasync = azurerm_network_interface.fgtaifchasync.private_ip_address
     fgt_a_private_ip_address_mgmt   = azurerm_network_interface.fgtaifcmgmt.private_ip_address
-    fgt_a_public_ip_address         = data.azurerm_public_ip.fgtamgmtpip.ip_address
+    fgt_a_public_ip_address         = var.use_management_pips ? data.azurerm_public_ip.fgtamgmtpip[0].ip_address : ""
     fgt_b_private_ip_address_ext    = azurerm_network_interface.fgtbifcext.private_ip_address
     fgt_b_private_ip_address_int    = azurerm_network_interface.fgtbifcint.private_ip_address
     fgt_b_private_ip_address_hasync = azurerm_network_interface.fgtbifchasync.private_ip_address
     fgt_b_private_ip_address_mgmt   = azurerm_network_interface.fgtbifcmgmt.private_ip_address
-    fgt_b_public_ip_address         = data.azurerm_public_ip.fgtbmgmtpip.ip_address
+    fgt_b_public_ip_address         = var.use_management_pips ? data.azurerm_public_ip.fgtbmgmtpip[0].ip_address : ""
   }
 }
 
 output "deployment_summary" {
   value = data.template_file.summary.rendered
+}
+
+output "fortivm" {
+  value = {
+    fgtavm = azurerm_virtual_machine.fgtavm
+    fgtbvm = azurerm_virtual_machine.fgtbvm
+  }
+}
+
+output "load_balancer" {
+  value = {
+    elb = azurerm_lb.elb
+    elb_probe = azurerm_lb_probe.elbprobe
+    elb_backend_address_pool = azurerm_lb_backend_address_pool.elbbackend
+  }
 }
 
 output "network" {

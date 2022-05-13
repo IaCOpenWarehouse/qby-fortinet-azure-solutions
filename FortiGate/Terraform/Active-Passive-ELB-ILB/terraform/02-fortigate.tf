@@ -10,6 +10,7 @@ resource "azurerm_availability_set" "fgtavset" {
   location            = var.LOCATION
   managed             = true
   resource_group_name = azurerm_resource_group.resourcegroup.name
+  platform_fault_domain_count = 2
 }
 
 resource "azurerm_network_security_group" "fgtnsg" {
@@ -22,6 +23,7 @@ resource "azurerm_network_security_rule" "fgtnsgallowallout" {
   name                        = "AllowAllOutbound"
   resource_group_name         = azurerm_resource_group.resourcegroup.name
   network_security_group_name = azurerm_network_security_group.fgtnsg.name
+
   priority                    = 100
   direction                   = "Outbound"
   access                      = "Allow"
@@ -207,6 +209,7 @@ resource "azurerm_network_interface_security_group_association" "fgtaifchasyncns
 }
 
 resource "azurerm_public_ip" "fgtamgmtpip" {
+  count = var.use_management_pips ? 1 : 0
   name                = coalesce(var.mgmt_pip_names["fgta"], "${var.PREFIX}-A-FGT-MGMT-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
@@ -227,7 +230,7 @@ resource "azurerm_network_interface" "fgtaifcmgmt" {
     subnet_id                     = azurerm_subnet.subnet4.id
     private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_a["4"]
-    public_ip_address_id          = azurerm_public_ip.fgtamgmtpip.id
+    public_ip_address_id          = var.use_management_pips ? azurerm_public_ip.fgtamgmtpip[0].id : ""
   }
 }
 
@@ -293,7 +296,7 @@ resource "azurerm_virtual_machine" "fgtavm" {
 }
 
 data "template_file" "fgt_a_custom_data" {
-  template = file("${path.module}/customdata.tpl")
+  template = file(coalesce(var.custom_template_file, "${path.module}/customdata.tpl"))
 
   vars = {
     fgt_vm_name         = coalesce(var.vm_names["fgtavm"], "${var.PREFIX}-A-VM-FGT")
@@ -394,6 +397,7 @@ resource "azurerm_network_interface_security_group_association" "fgtbifchasyncns
 }
 
 resource "azurerm_public_ip" "fgtbmgmtpip" {
+  count = var.use_management_pips ? 1 : 0
   name                = coalesce(var.mgmt_pip_names["fgtb"], "${var.PREFIX}-B-FGT-MGMT-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
@@ -414,7 +418,7 @@ resource "azurerm_network_interface" "fgtbifcmgmt" {
     subnet_id                     = azurerm_subnet.subnet4.id
     private_ip_address_allocation = "Static"
     private_ip_address            = var.fgt_ipaddress_b["4"]
-    public_ip_address_id          = azurerm_public_ip.fgtbmgmtpip.id
+    public_ip_address_id          = var.use_management_pips ? azurerm_public_ip.fgtbmgmtpip[0].id : ""
   }
 }
 
@@ -482,7 +486,7 @@ resource "azurerm_virtual_machine" "fgtbvm" {
 }
 
 data "template_file" "fgt_b_custom_data" {
-  template = file("${path.module}/customdata.tpl")
+  template = file(coalesce(var.custom_template_file, "${path.module}/customdata.tpl"))
 
   vars = {
     fgt_vm_name         = coalesce(var.vm_names["fgtbvm"], "${var.PREFIX}-B-VM-FGT")
@@ -511,23 +515,25 @@ data "template_file" "fgt_b_custom_data" {
 }
 
 data "azurerm_public_ip" "fgtamgmtpip" {
-  name                = azurerm_public_ip.fgtamgmtpip.name
+  count = var.use_management_pips ? 1 : 0
+  name                = azurerm_public_ip.fgtamgmtpip[0].name
   resource_group_name = azurerm_resource_group.resourcegroup.name
   depends_on          = [azurerm_virtual_machine.fgtavm]
 }
 
 data "azurerm_public_ip" "fgtbmgmtpip" {
-  name                = azurerm_public_ip.fgtbmgmtpip.name
+  count = var.use_management_pips ? 1 : 0
+  name                = azurerm_public_ip.fgtbmgmtpip[0].name
   resource_group_name = azurerm_resource_group.resourcegroup.name
   depends_on          = [azurerm_virtual_machine.fgtbvm]
 }
 
 output "fgt_a_public_ip_address" {
-  value = data.azurerm_public_ip.fgtamgmtpip.ip_address
+  value = var.use_management_pips ? data.azurerm_public_ip.fgtamgmtpip[0].ip_address : "" 
 }
 
 output "fgt_b_public_ip_address" {
-  value = data.azurerm_public_ip.fgtbmgmtpip.ip_address
+  value = var.use_management_pips ? data.azurerm_public_ip.fgtbmgmtpip[0].ip_address : ""
 }
 
 data "azurerm_public_ip" "elbpip" {
