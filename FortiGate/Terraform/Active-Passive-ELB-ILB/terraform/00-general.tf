@@ -155,6 +155,7 @@ variable "subnet" {
 
 variable "vnet_internal_route" {
   type = string
+  default = "172.16.136.0/22"
   description = "Used in firewall as routing table for internal nets"
 }
 
