@@ -34,6 +34,24 @@ variable "custom_template_file" {
   description = "Path to a custom tpl file to replace the customdata.tpl"
 }
 
+variable "fgt_ipsec_psk" {
+  type        = string
+  description = "Password of ipsec vpn"
+  sensitive   = true
+}
+
+variable "fgt_radius_psk" {
+  type        = string
+  description = "Password of radius"
+  sensitive   = true
+}
+
+variable "fgt_analyzer_psk" {
+  type        = string
+  description = "Password of analyzer"
+  sensitive   = true
+}
+
 ##############################################################################################################
 # FortiGate license type
 ##############################################################################################################
@@ -133,6 +151,12 @@ variable "subnet" {
     "5" = "172.16.137.0/24"   # Protected a
     "6" = "172.16.138.0/24"   # Protected b
   }
+}
+
+variable "vnet_internal_route" {
+  type = string
+  default = "172.16.136.0/22"
+  description = "Used in firewall as routing table for internal nets"
 }
 
 variable "subnetmask" {

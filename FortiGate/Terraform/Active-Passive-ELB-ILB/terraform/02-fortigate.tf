@@ -6,10 +6,10 @@
 ##############################################################################################################
 
 resource "azurerm_availability_set" "fgtavset" {
-  name                = coalesce(var.avset_name, "${var.PREFIX}-FGT-AVSET")
-  location            = var.LOCATION
-  managed             = true
-  resource_group_name = azurerm_resource_group.resourcegroup.name
+  name                        = coalesce(var.avset_name, "${var.PREFIX}-FGT-AVSET")
+  location                    = var.LOCATION
+  managed                     = true
+  resource_group_name         = azurerm_resource_group.resourcegroup.name
   platform_fault_domain_count = 2
 }
 
@@ -24,14 +24,14 @@ resource "azurerm_network_security_rule" "fgtnsgallowallout" {
   resource_group_name         = azurerm_resource_group.resourcegroup.name
   network_security_group_name = azurerm_network_security_group.fgtnsg.name
 
-  priority                    = 100
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "*"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "*"
+  priority                   = 100
+  direction                  = "Outbound"
+  access                     = "Allow"
+  protocol                   = "Tcp"
+  source_port_range          = "*"
+  destination_port_range     = "*"
+  source_address_prefix      = "*"
+  destination_address_prefix = "*"
 }
 
 resource "azurerm_network_security_rule" "fgtnsgallowallin" {
@@ -209,7 +209,7 @@ resource "azurerm_network_interface_security_group_association" "fgtaifchasyncns
 }
 
 resource "azurerm_public_ip" "fgtamgmtpip" {
-  count = var.use_management_pips ? 1 : 0
+  count               = var.use_management_pips ? 1 : 0
   name                = coalesce(var.mgmt_pip_names["fgta"], "${var.PREFIX}-A-FGT-MGMT-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
@@ -320,7 +320,10 @@ data "template_file" "fgt_a_custom_data" {
     fgt_ha_peerip       = var.fgt_ipaddress_b["3"]
     fgt_ha_priority     = "255"
     fgt_protected_net   = var.subnet["5"]
-    vnet_network        = var.vnet
+    vnet_network        = var.vnet_internal_route
+    fgt_ipsec_psk       = var.fgt_ipsec_psk
+    fgt_radius_psk      = var.fgt_radius_psk
+    fgt_analyzer_psk    = var.fgt_analyzer_psk
   }
 }
 
@@ -397,7 +400,7 @@ resource "azurerm_network_interface_security_group_association" "fgtbifchasyncns
 }
 
 resource "azurerm_public_ip" "fgtbmgmtpip" {
-  count = var.use_management_pips ? 1 : 0
+  count               = var.use_management_pips ? 1 : 0
   name                = coalesce(var.mgmt_pip_names["fgtb"], "${var.PREFIX}-B-FGT-MGMT-PIP")
   location            = var.LOCATION
   resource_group_name = azurerm_resource_group.resourcegroup.name
@@ -510,26 +513,29 @@ data "template_file" "fgt_b_custom_data" {
     fgt_ha_peerip       = var.fgt_ipaddress_a["3"]
     fgt_ha_priority     = "255"
     fgt_protected_net   = var.subnet["5"]
-    vnet_network        = var.vnet
+    vnet_network        = var.vnet_internal_route
+    fgt_ipsec_psk       = var.fgt_ipsec_psk
+    fgt_radius_psk      = var.fgt_radius_psk
+    fgt_analyzer_psk    = var.fgt_analyzer_psk
   }
 }
 
 data "azurerm_public_ip" "fgtamgmtpip" {
-  count = var.use_management_pips ? 1 : 0
+  count               = var.use_management_pips ? 1 : 0
   name                = azurerm_public_ip.fgtamgmtpip[0].name
   resource_group_name = azurerm_resource_group.resourcegroup.name
   depends_on          = [azurerm_virtual_machine.fgtavm]
 }
 
 data "azurerm_public_ip" "fgtbmgmtpip" {
-  count = var.use_management_pips ? 1 : 0
+  count               = var.use_management_pips ? 1 : 0
   name                = azurerm_public_ip.fgtbmgmtpip[0].name
   resource_group_name = azurerm_resource_group.resourcegroup.name
   depends_on          = [azurerm_virtual_machine.fgtbvm]
 }
 
 output "fgt_a_public_ip_address" {
-  value = var.use_management_pips ? data.azurerm_public_ip.fgtamgmtpip[0].ip_address : "" 
+  value = var.use_management_pips ? data.azurerm_public_ip.fgtamgmtpip[0].ip_address : ""
 }
 
 output "fgt_b_public_ip_address" {
