@@ -153,6 +153,11 @@ variable "subnet" {
   }
 }
 
+variable "vnet_internal_route" {
+  type = string
+  description = "Used in firewall as routing table for internal nets"
+}
+
 variable "subnetmask" {
   type        = map(string)
   description = ""

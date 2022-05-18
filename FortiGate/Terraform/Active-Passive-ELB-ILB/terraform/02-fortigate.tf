@@ -320,7 +320,7 @@ data "template_file" "fgt_a_custom_data" {
     fgt_ha_peerip       = var.fgt_ipaddress_b["3"]
     fgt_ha_priority     = "255"
     fgt_protected_net   = var.subnet["5"]
-    vnet_network        = var.vnet
+    vnet_network        = var.vnet_internal_route
     fgt_ipsec_psk       = var.fgt_ipsec_psk
     fgt_radius_psk      = var.fgt_radius_psk
     fgt_analyzer_psk    = var.fgt_analyzer_psk
@@ -513,7 +513,7 @@ data "template_file" "fgt_b_custom_data" {
     fgt_ha_peerip       = var.fgt_ipaddress_a["3"]
     fgt_ha_priority     = "255"
     fgt_protected_net   = var.subnet["5"]
-    vnet_network        = var.vnet
+    vnet_network        = var.vnet_internal_route
     fgt_ipsec_psk       = var.fgt_ipsec_psk
     fgt_radius_psk      = var.fgt_radius_psk
     fgt_analyzer_psk    = var.fgt_analyzer_psk
