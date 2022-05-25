@@ -59,3 +59,7 @@ output "network" {
     subnet6 = azurerm_subnet.subnet6
   }
 }
+
+output "nsg" {
+  value = azurerm_network_security_group.fgtnsg
+}
