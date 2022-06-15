@@ -211,8 +211,13 @@ variable "gateway_ipaddress" {
 
 variable "lb_internal_ipaddress" {
   description = ""
-
+  type = string
   default = "172.16.136.68"
+}
+
+variable "lbe_rules_disable_outbound_snat" {
+  type = bool
+  default = false
 }
 
 variable "fgt_vmsize" {

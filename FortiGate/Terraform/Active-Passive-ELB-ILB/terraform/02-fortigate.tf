@@ -89,6 +89,7 @@ resource "azurerm_lb_rule" "lbruletcp" {
   frontend_ip_configuration_name = coalesce(var.elb_config_names["frontend_ip_name"], "${var.PREFIX}-ELB-PIP")
   probe_id                       = azurerm_lb_probe.elbprobe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.elbbackend.id]
+  disable_outbound_snat = var.lbe_rules_disable_outbound_snat
 }
 
 resource "azurerm_lb_rule" "lbruleudp" {
@@ -100,6 +101,7 @@ resource "azurerm_lb_rule" "lbruleudp" {
   frontend_ip_configuration_name = coalesce(var.elb_config_names["frontend_ip_name"], "${var.PREFIX}-ELB-PIP")
   probe_id                       = azurerm_lb_probe.elbprobe.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.elbbackend.id]
+  disable_outbound_snat = var.lbe_rules_disable_outbound_snat
 }
 
 resource "azurerm_lb" "ilb" {
